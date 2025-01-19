@@ -1,0 +1,2 @@
+waveGen.c:15:6:Synth_Init	8	static
+waveGen.c:21:6:make_sound	16	static
