@@ -1,0 +1,10 @@
+oscillators.c:21:1:osc_init	0	static
+oscillators.c:36:1:OpSetFreq	0	static
+oscillators.c:42:9:BasicSaw	0	static
+oscillators.c:56:9:BasicTriangle	0	static
+oscillators.c:70:9:BasicSquare	0	static
+oscillators.c:85:9:BasicSine	16	static
+oscillators.c:101:9:FLTR_Triangle_LFO	0	static
+oscillators.c:115:9:MorphingSaw	0	static
+oscillators.c:131:9:PulseWave	16	static
+oscillators.c:154:7:waveCompute	8	static

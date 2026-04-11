@@ -1,0 +1,7 @@
+DSP-Filter.c:18:6:init_Filter	0	static
+DSP-Filter.c:33:7:FilterFreq_set	8	static
+DSP-Filter.c:38:6:SetFilterValue	16	static
+DSP-Filter.c:51:6:SetReso	0	static
+DSP-Filter.c:46:7:FilterRes_set	8	static
+DSP-Filter.c:57:7:FilterType_set	8	static
+DSP-Filter.c:63:7:calcFilterSample	56	static

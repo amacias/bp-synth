@@ -1,0 +1,29 @@
+DfuSe:
+
+
+To Flash the code into the BlackPill board you need to first:
+Either Download the App from the ST site or use the Copy in the BPsynthFiles_All zip folder.
+Run the DfuSe_Demo Setup.... this will install the apps onto your PC at:
+
+C:\Program Files (x86)\STMicroelectronics\Software\DfuSe v3.0.6\Bin
+
+Remove BPboard from circuit
+Open DeFuseDemo.exe
+
+Plug USB-C cord into PC
+Hold Down BOOT0 button on the BPboard
+Plug USB-C into BPboard.  Your PC should chime that it is recognized.  Release the BOOT0 button on the BPboard.
+	(You can verify connection in DeviceMgr>Universal Serial Bus..> STM Device in DFU Mode)
+In DfuSe Demo you should see in "Available DFU Devices"
+	"STM Device in DFU Mode"
+
+Click on CHOOSE in "Upgrade or Verify Action"
+  In the "Open" window find the "BP_Synth_DeFuse.hex.dfu" file that you downloaded.
+    Click on the file to choose it and press Open.
+	You should see BP_Synth_DeFuse.hex.dfu next to File:
+	A message at the bottom should say "File correctly loaded."
+		Click "Upgrade".  A dialog will open saying blah, blah, blah... "Continue However?"
+		Click YES.  First it will Erase, then Download and finally a message saying "Upgrade successful !"
+		The BP Board is now flashed with the code and ready for use.
+		
+

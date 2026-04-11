@@ -1,0 +1,10 @@
+Ctrlr crash at: 14 Feb 2025 19:55:33
+Stack trace:
+3: UnhandledExceptionFilter + 0x1f3
+4: strncpy + 0x312a
+5: _C_specific_handler + 0x93
+6: _chkstk + 0x9f
+7: RtlWow64GetCurrentCpuArea + 0xa98
+8: KiUserExceptionDispatcher + 0x2e
+19: BaseThreadInitThunk + 0x17
+20: RtlUserThreadStart + 0x2c

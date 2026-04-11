@@ -1,0 +1,7 @@
+parameterFuncs.c:15:6:SynthOut_amp_set	0	static
+parameterFuncs.c:20:6:Vibrato_amp_set	0	static
+parameterFuncs.c:25:6:VibratoFreq_set	0	static
+parameterFuncs.c:30:6:OSC_Select	8	static
+parameterFuncs.c:35:6:square_dutycycle	8	static
+parameterFuncs.c:40:6:pwm_amp_set	8	static
+parameterFuncs.c:44:6:pwm_freq_set	8	static

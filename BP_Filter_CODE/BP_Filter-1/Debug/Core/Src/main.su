@@ -1,0 +1,14 @@
+main.c:470:13:MX_GPIO_Init	8	static
+main.c:387:13:MX_I2S1_Init	8	static
+main.c:452:13:MX_DMA_Init	16	static
+main.c:421:13:MX_USART2_UART_Init	8	static
+main.c:84:6:HAL_I2S_TxHalfCpltCallback	8	static
+main.c:93:6:HAL_I2S_TxCpltCallback	8	static
+main.c:180:6:MIDInoteOn	8	static
+main.c:202:6:MIDInoteOff	16	static
+main.c:247:6:doPitchBnd	8	static
+main.c:138:6:procMIDI	8	static
+main.c:100:6:HAL_UART_RxCpltCallback	8	static
+main.c:334:6:SystemClock_Config	120	static
+main.c:267:5:main	8	static
+main.c:487:6:Error_Handler	0	static

@@ -1,0 +1,4 @@
+oscillators.c:14:1:osc_init	0	static
+oscillators.c:29:1:OpSetFreq	0	static
+oscillators.c:35:9:BasicSaw	0	static
+oscillators.c:51:7:waveCompute	8	static

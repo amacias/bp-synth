@@ -1,0 +1,26 @@
+************READ ME****************
+
+November 6th, 2022
+
+The BPsynthFiles_Basic zip folder does not have what you need to upload code to a BlackPill Board.
+Please Check the LINKS text file for direct links to download the apps needed to upload code to the BlackPill board.
+
+
+This folder does include the BP_Synth-GUI App that will let you quickly edit parameters on the Synth.
+
+You will still need some kind of USB MIDI interface to use the GUI app.
+
+It is possible to use a standalone MIDI Keyboard.  I have included a MIDI CC List PDF file.
+
+
+Additionally there are two pictures showing how to hook up all the BPsynth parts.
+One for those using a PCM5102 DAC and another for the UDA1337 DAC.
+
+Currently there is not any support for Mac OS.   
+
+
+Thanks for your interest in the BP Synth.  I hope you enjoy the build and find it to be a pretty cool little monosynth!
+
+/Blaine Perkins
+
+
