@@ -1,3 +1,0 @@
-parameterFuncs.c:11:6:SynthOut_amp_set	0	static
-parameterFuncs.c:16:6:Vibrato_amp_set	0	static
-parameterFuncs.c:21:6:VibratoFreq_set	0	static

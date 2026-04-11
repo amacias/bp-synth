@@ -1,0 +1,19 @@
+# STM32CubeIDE build output directories
+Debug/
+Release/
+
+# Compiled object and dependency files (if outside build dirs)
+*.o
+*.d
+*.su
+*.cyclo
+
+# Linked output files (if outside build dirs)
+*.elf
+*.hex
+*.bin
+*.list
+*.map
+
+# STM32CubeMX scratch files
+*.scratch

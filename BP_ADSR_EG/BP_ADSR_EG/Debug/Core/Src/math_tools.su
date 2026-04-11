@@ -1,7 +1,0 @@
-math_tools.c:12:7:Lin2Exp	16	static
-math_tools.c:17:7:tanhXdX	0	static
-math_tools.c:25:7:fastTanh	0	static
-math_tools.c:32:8:procClip	16	static
-math_tools.c:37:8:fastTan	0	static
-math_tools.c:44:7:mapfloat	0	static
-math_tools.c:48:7:fscale	32	static
