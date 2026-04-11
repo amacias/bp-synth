@@ -139,6 +139,20 @@ initialization.
 
 ---
 
+## Licenses
+
+The application source code (all `Core/Src/` files authored by Blaine Perkins) is licensed under
+**GNU General Public License v2.0 or later**. See the GPL v2 notice at the top of each source file.
+
+The project also includes two third-party driver libraries with their own licenses:
+
+| Component | License | Location |
+|-----------|---------|----------|
+| STM32F4xx HAL Driver (STMicroelectronics) | BSD-3-Clause | `Drivers/STM32F4xx_HAL_Driver/LICENSE.txt` |
+| CMSIS (ARM / STMicroelectronics) | Apache 2.0 | `Drivers/CMSIS/LICENSE.txt` |
+
+---
+
 ## Note on Build Artifacts
 
 Build output directories (`Debug/`, `Release/`) and compiled artifacts (`.o`, `.d`, `.elf`, `.hex`,
