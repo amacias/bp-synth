@@ -44,7 +44,7 @@ typedef struct
 
 
 /*Exported Functions-------------------------------------*/
-float waveCompute(uint8_t select, float f0);
+float waveComputeVoice(uint8_t select, float f0, uint8_t voiceIdx);
 void osc_init(Oscillator_t * op, float_t amp, float_t freq);
 float_t BasicSaw(Oscillator_t * op);
 float_t BasicTriangle(Oscillator_t * op);

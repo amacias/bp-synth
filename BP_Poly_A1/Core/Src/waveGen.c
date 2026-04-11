@@ -20,15 +20,12 @@
 extern float vol;
 static float env;
 
-static float f0;//base frequency
-
-extern Oscillator_t 	op1 ;//our 1st oscillator!
-extern Oscillator_t 	vibr_lfo;//LFO osc for vibrato
+extern Oscillator_t 	op[]; 		// voice oscillators; op[v].amp==0 means inactive
+extern Oscillator_t 	vibr_lfo;	// vibrato LFO
 extern Oscillator_t 	pwm_lfo;
 
-extern Oscillator_t 		filt_lfo;
+extern Oscillator_t 	filt_lfo;
 
-extern uint8_t currNote;//from MIDI func in main.c
 extern float bendFactor;//the Pitchbend variable
 
 extern ADSR_t 			amp_EG;
@@ -49,8 +46,12 @@ void Synth_Init(void)
 	env = 0;
 	ADSR_init(&amp_EG);
 	ADSR_init(&filterEG);
-	osc_init(&op1, 0.8f, 587.f);//inits the  &op1 oscillator
-	osc_init(&vibr_lfo, 0, VIBRATO_FREQ);//inits vibr LFO and it's freq
+
+	// init all voice oscillators as inactive (amp=0)
+	for (int v = 0; v < NUM_VOICES; v++) {
+		osc_init(&op[v], 0.0f, 440.0f);
+	}
+	osc_init(&vibr_lfo, 0, VIBRATO_FREQ);//inits vibr LFO and its freq
 
 	init_Filter();
 	filterFreq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, 1) / SAMPLERATE ;//open filter fully
@@ -69,47 +70,53 @@ void make_sound(uint16_t *buf , uint16_t length){
 	uint16_t 	*outp;
 	float	 	y = 0;
 	float	 	yL, yR ;
-	float 		f1;//adjusted frequency
+	float 		f_base[NUM_VOICES];// per-voice base frequency (Hz * bendFactor)
+	int			active;				// count of voices currently sounding
 	uint16_t 	valueL, valueR;
-
 
 	outp = buf;
 
-	//MIDI note to frequency conversion equation
-	f0=440.0 * powf(2.0, (float)(currNote - 69) * 0.08333333) * bendFactor;
+	/*--- pre-compute per-voice base frequencies ---*/
+	active = 0;
+	for (int v = 0; v < NUM_VOICES; v++) {
+		if (op[v].amp > 0.001f) {
+			f_base[v] = op[v].freq * bendFactor;
+			active++;
+		} else {
+			f_base[v] = 0.0f;
+		}
+	}
 
-	/*--- vibrato modulation ---*/
-	f1 = f0 *  (1+ vibr_lfo.out);
-
-	/*--- Apply envelop ---*/
+	/*--- Apply envelope ---*/
 	env = ADSR_computeSample(&amp_EG);
 
 	/*--- Update the cutoff value ---*/
 	SetFilterValue((filterFreq * (1+ filt_lfo.out)) * (ADSR_computeSample(&filterEG)*22));
-	//SetFilterValue((filterFreq * (1+ ADSR_computeSample(&filterEG)*22)));//no LFO
-
 
 	for (pos = 0; pos < length; pos++)
 	{
-
-		/*--- vibrato lof calc ---*/
+		/*--- LFO calculations ---*/
 		BasicTriangle(&vibr_lfo);
-
 		FLTR_Triangle_LFO(&filt_lfo);
 
-		/*--- Generate waveform ---*/
-		y = waveCompute(osc_sel, f1);
-
-
+		/*--- Sum all active voices with vibrato applied ---*/
+		y = 0;
+		for (int v = 0; v < NUM_VOICES; v++) {
+			if (f_base[v] > 0.1f) {
+				y += waveComputeVoice(osc_sel, f_base[v] * (1.0f + vibr_lfo.out), v);
+			}
+		}
+		/* normalize by active voice count to prevent output clipping */
+		if (active > 0) y /= (float)active;
 
 		y *= vol * env;//volume AND envelope together!
 
 		/*--- Apply filter effect ---*/
-		 if(vcf.type){ //<--completely stops any filter calculations if nil
-		y = calcFilterSample(y);
-		 }
+		if(vcf.type){ //<--completely stops any filter calculations if nil
+			y = calcFilterSample(y);
+		}
 
-		//make the left and right channel same values(mono output)
+		//make the left and right channel same values (mono output)
 		yL = yR = y;
 
 		/*--- clipping ---*/
@@ -128,6 +135,5 @@ void make_sound(uint16_t *buf , uint16_t length){
 		*outp++ = valueR; // right channel sample
 
 	}
-
 
 }

@@ -30,6 +30,7 @@
 #define BUFF_LEN                (4*BUFF_LEN_DIV4)  // Used to define the audiobuff[] length
 
 #define MIDI_MAX				127.f 	// floating max value
+#define NUM_VOICES				4		// number of paraphonic voices
 
 #if defined   (__GNUC__)        /* GNU Compiler */
     #define __ALIGN    __attribute__ ((aligned (4)))

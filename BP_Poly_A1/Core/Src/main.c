@@ -1,4 +1,4 @@
-/* BP-Filter-2 */
+/* BP_Poly_A1 - Paraphonic Synthesizer */
 /*
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -53,10 +53,12 @@ uint8_t MIDIcmd;
 uint8_t MIDInote;
 uint8_t MIDIvel;
 
-uint8_t voice[16];
-uint8_t noteCount=0;
-uint8_t currNote=54;//initial note value
-uint8_t noteByteFlag=0;
+// Voice allocator state
+uint8_t voice_notes[NUM_VOICES]; // MIDI note in each slot; 0 = free
+uint8_t voice_age[NUM_VOICES];   // monotonic age for oldest-note steal
+uint8_t age_ctr = 0;             // wrapping counter used to assign ages
+uint8_t noteCount = 0;           // number of currently active voices
+uint8_t noteByteFlag = 0;
 
 //---pitchbend variables
 uint8_t bendRange=6;
@@ -64,9 +66,9 @@ float bendFactor=1.0f;
 
 static bool legatoOn=true;
 
-extern Oscillator_t 		op1 ;
+extern Oscillator_t 	op[];     // voice oscillators defined in oscillators.c
 extern ADSR_t amp_EG;
-extern ADSR_t 			filterEG;
+extern ADSR_t filterEG;
 
 /* USER CODE END PV */
 
@@ -189,87 +191,63 @@ void procMIDI(void) {
 
 void MIDInoteOn(uint8_t note)
 {
-		  if (!noteCount) {
-		  voice [0] = note;
-				//restart the EGs at EG.value_ =0.01 if EG was in RELEASE mode
-				if(amp_EG.state_== RELEASE){
-				amp_EG.value_ = 0.1;
-				filterEG.value_ = 0.1;
-				}
+	int slot = -1;
+	uint8_t steal = 0; // index of oldest voice to steal
 
-		    ADSR_keyOn(&amp_EG);
-		    ADSR_keyOn(&filterEG);
-		    currNote = voice[0];
-		    noteCount++;
-		    return;
-		  }
+	/* find a free voice slot */
+	for (int i = 0; i < NUM_VOICES; i++) {
+		if (!voice_notes[i]) { slot = i; break; }
+	}
 
-	for (int i = 0; i < 16; i++) {
-    if (!voice[i]){
-      voice[i] = note;
-      currNote = voice[i];
-				if(!legatoOn)
-				{
-				amp_EG.value_ = 0.1;
-				ADSR_keyOn(&amp_EG);
-				filterEG.value_ = 0.1;
-				ADSR_keyOn(&filterEG);
-				}
-      noteCount++;
-      break;
-      }
-    }
-  }
+	/* no free slot — steal the oldest active voice */
+	if (slot < 0) {
+		for (int i = 1; i < NUM_VOICES; i++) {
+			if (voice_age[i] < voice_age[steal]) steal = i;
+		}
+		slot = steal;
+	}
+
+	/* assign the note to this voice slot */
+	voice_notes[slot] = note;
+	voice_age[slot]   = age_ctr++;
+	op[slot].freq     = 440.0f * powf(2.0f, (float)(note - 69) * 0.083333f);
+	op[slot].amp      = 0.8f;
+
+	if (!noteCount) {
+		/* first note on — start envelopes (pick up softly if still releasing) */
+		if (amp_EG.state_ == RELEASE) {
+			amp_EG.value_   = 0.1f;
+			filterEG.value_ = 0.1f;
+		}
+		ADSR_keyOn(&amp_EG);
+		ADSR_keyOn(&filterEG);
+	} else if (!legatoOn) {
+		/* legato off — retrigger envelopes on every new note */
+		amp_EG.value_   = 0.1f;
+		filterEG.value_ = 0.1f;
+		ADSR_keyOn(&amp_EG);
+		ADSR_keyOn(&filterEG);
+	}
+
+	noteCount++;
+}
 
 void MIDInoteOff(uint8_t note)
 {
-  if (note == currNote && noteCount>1) {
-		for (int i = 0; i < 16; i++) {
-      if (note == voice[i]) {
-      currNote = voice[i - 1];
-					if(!legatoOn) //retrigger the EG if legato is On
-					{
-					amp_EG.value_ = 0.1;
-					ADSR_keyOn(&amp_EG);
-					filterEG.value_ = 0.1;
-					ADSR_keyOn(&filterEG);
-					}
-	    voice[i] = 0;
-	    noteCount--;
-	    break;
-      }
+	for (int i = 0; i < NUM_VOICES; i++) {
+		if (voice_notes[i] == note) {
+			voice_notes[i] = 0;
+			op[i].amp = 0.0f; // silence this voice immediately
+			if (noteCount > 0) noteCount--;
+			break;
+		}
+	}
 
-    }
-          return;
-  }
-
-
-  if (noteCount < 2) {
-		//last note released. Begin the EG's RELEASE stage
-	  ADSR_keyOff(&amp_EG);
-	  ADSR_keyOff(&filterEG);
-		voice[0] = 0;
-		noteCount--;
-			if (noteCount < 0) {
-			  noteCount = 0;
-	    }
-  	}
-
-  if (noteCount > 1) {  //if a note is released that was held down, but not playing
-    for (int i = 0; i < 16; i++) {// find the note in the array
-      if (voice[i] == note) {
-        voice[i] = 0; //remove the note
-        for (int c = (i + 1); c < 16; c++) {
-          voice[i] = voice[c]; //shift all notes past the removed one, left by one place in array
-          ++i;
-        }
-        voice[15] = 0;
-        noteCount--;
-        break;
-      }
-    }
-  }
-
+	/* last note released — begin envelope release stage */
+	if (!noteCount) {
+		ADSR_keyOff(&amp_EG);
+		ADSR_keyOff(&filterEG);
+	}
 }
 
 

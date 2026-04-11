@@ -17,7 +17,7 @@
 #include "oscillators.h"
 
 
-Oscillator_t 		op1;
+Oscillator_t 		op[NUM_VOICES];
 Oscillator_t 		vibr_lfo;
 Oscillator_t 		pwm_lfo;
 
@@ -162,35 +162,34 @@ float_t PulseWave(Oscillator_t * op) // PWM_naive square
 /*-------------------------------------------------------*/
 
 
-float waveCompute(uint8_t select, float frq)
+float waveComputeVoice(uint8_t select, float frq, uint8_t voiceIdx)
 {
 	float y;
 
-	OpSetFreq(&op1, frq);
-
+	OpSetFreq(&op[voiceIdx], frq);
 
 			/* select an oscillator */
 			switch (select)
 			{
 				case BASIC_SAW :
-				y = BasicSaw(&op1); break;
+				y = BasicSaw(&op[voiceIdx]); break;
 
 				case BASIC_SQR :
-				y = 0.4f * BasicSquare(&op1); break;
+				y = 0.4f * BasicSquare(&op[voiceIdx]); break;
 				//its a bit loud, so I multiply by 0.4f to lower its vol
 				//so it matches the other osc's
 
 				case BASIC_TRIANG :
-				y = BasicTriangle(&op1); break;
+				y = BasicTriangle(&op[voiceIdx]); break;
 
 				case BASIC_SINE :
-				y = BasicSine(&op1); break;
+				y = BasicSine(&op[voiceIdx]); break;
 
 				case MORPHSAW :
-				y = MorphingSaw(&op1); break;
+				y = MorphingSaw(&op[voiceIdx]); break;
 
 				case PULSE :
-				y = 0.4 * PulseWave(&op1); break;
+				y = 0.4f * PulseWave(&op[voiceIdx]); break;
 
 
 

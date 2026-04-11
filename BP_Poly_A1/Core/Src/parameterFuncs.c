@@ -18,7 +18,7 @@
 /* Private variables -----------------------------------------------*/
 float vol;
 uint8_t osc_sel;
-extern Oscillator_t 		op1 ;
+extern Oscillator_t 		op[];
 extern Oscillator_t 		vibr_lfo;
 extern Oscillator_t 		pwm_lfo;
 
