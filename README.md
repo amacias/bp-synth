@@ -112,6 +112,19 @@ initialization.
   producing a smooth, connected playing style. Both the amp EG and filter EG are retriggered on note
   change when legato is off.
 
+  This is the only project containing the full set of application source files:
+
+  | File | Description |
+  |------|-------------|
+  | `main.c` | MIDI parsing, note on/off, pitchbend, legato |
+  | `oscillators.c` | Waveform generation, vibrato LFO |
+  | `waveGen.c` | Audio buffer fill, oscillator mixing |
+  | `adsr.c` | ADSR envelope generator |
+  | `MIDI_CCs.c` | MIDI CC handler |
+  | `parameterFuncs.c` | Parameter mapping/scaling |
+  | `math_tools.c` | Math utilities |
+  | `DSP-Filter.c` | Low-pass filter with filter envelope |
+
 ---
 
 ### `BPsynthFiles_Basic`
