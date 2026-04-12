@@ -21,12 +21,16 @@ extern float vol;
 static float env;
 
 extern Oscillator_t 	op[]; 		// voice oscillators; op[v].amp==0 means inactive
+extern float		voice_freq[];	// base MIDI frequencies; separate from op[].freq
+					// which gets overwritten per-sample by waveComputeVoice
 extern Oscillator_t 	vibr_lfo;	// vibrato LFO
 extern Oscillator_t 	pwm_lfo;
 
 extern Oscillator_t 	filt_lfo;
 
-extern float bendFactor;//the Pitchbend variable
+extern float bendFactor;      // the Pitchbend variable
+extern float osc1_coarse_mult;// CC11 coarse tune multiplier
+extern float osc2_coarse_mult;// CC12 coarse tune multiplier
 
 extern ADSR_t 			amp_EG;
 extern ADSR_t 			filterEG;
@@ -80,7 +84,8 @@ void make_sound(uint16_t *buf , uint16_t length){
 	active = 0;
 	for (int v = 0; v < NUM_VOICES; v++) {
 		if (op[v].amp > 0.001f) {
-			f_base[v] = op[v].freq * bendFactor;
+			float coarse = (v < 2) ? osc1_coarse_mult : osc2_coarse_mult;
+			f_base[v] = voice_freq[v] * bendFactor * coarse;
 			active++;
 		} else {
 			f_base[v] = 0.0f;

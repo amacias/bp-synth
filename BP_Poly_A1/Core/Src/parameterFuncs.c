@@ -18,6 +18,8 @@
 /* Private variables -----------------------------------------------*/
 float vol;
 uint8_t osc_sel;
+float osc1_coarse_mult = 1.0f; // frequency multiplier from CC11 coarse tune
+float osc2_coarse_mult = 1.0f; // frequency multiplier from CC12 coarse tune
 extern Oscillator_t 		op[];
 extern Oscillator_t 		vibr_lfo;
 extern Oscillator_t 		pwm_lfo;
@@ -71,18 +73,15 @@ void Filt1LFO_freq_set(uint8_t val)
 	filt_lfo.freq = MAX_VIBRATO_FREQ / MIDI_MAX * val;
 }
 /*-----------------------------------------------------------*/
-
-
+void Osc1CoarseTune_set(uint8_t val)
+{
+    // CC11: voices 1-2; 0 = unison, 127 = +12 semitones (one octave up)
+    osc1_coarse_mult = powf(2.0f, (float)val / 127.0f);
+}
 /*-----------------------------------------------------------*/
-
-
-/*-----------------------------------------------------------*/
-
-
-/*-----------------------------------------------------------*/
-
-
-/*-----------------------------------------------------------*/
-
-
+void Osc2CoarseTune_set(uint8_t val)
+{
+    // CC12: voices 3-4; 0 = unison, 127 = +12 semitones (one octave up)
+    osc2_coarse_mult = powf(2.0f, (float)val / 127.0f);
+}
 /*-----------------------------------------------------------*/

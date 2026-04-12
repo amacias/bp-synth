@@ -127,6 +127,35 @@ initialization.
 
 ---
 
+### `BP_Poly_A1`
+**4-voice paraphonic synthesizer** — developed by **Adrian R Macias**, extending the `BP_Filter-2`
+monosynth into a polyphonic instrument.
+
+The objective of this project was to convert the single-oscillator monosynth into a **paraphonic**
+architecture: four independent oscillators each tracking a separate MIDI note, mixed together and
+passed through a single shared filter and amplitude envelope. This allows up to four simultaneous
+notes to be played, with the characteristic paraphonic behavior of a shared filter sweep and envelope
+shaping across all voices.
+
+Key features added beyond `BP_Filter-2`:
+
+| Feature | Description |
+|---------|-------------|
+| 4-voice polyphony | Up to 4 simultaneous notes; oldest-note steal when all slots are filled |
+| Voice allocator | Each MIDI note-on claims a free voice slot; note-off releases only that slot |
+| Pitch stability fix | `voice_freq[]` array preserves clean MIDI note frequencies, preventing drift from per-sample vibrato/bend modulation |
+| Legato mode | Re-triggered notes do not restart the shared envelopes when legato is on |
+| Per-pair coarse tune | CC11 shifts voices 1–2 up to one octave; CC12 independently shifts voices 3–4 *(see note below)* |
+| Shared filter + EG | All voices feed a single DSP filter modulated by the filter envelope |
+
+> **Note on coarse frequency control:** The original `BPsynthFiles_Basic` hex file exposes CC11
+> ("Osc1CourseFreq") and CC12 ("Osc2CourseFreq") controls via the GUI, but no corresponding
+> implementation was found in any of the tutorial source files. These CCs were unhandled across all
+> projects. For `BP_Poly_A1`, they have been re-imagined as per-voice-pair coarse tuning: CC11
+> shifts voices 1–2 and CC12 shifts voices 3–4, each independently spanning 0 to +1 octave.
+
+---
+
 ### `BPsynthFiles_Basic`
 **Supporting files for flashing and using the synth hardware.** Contains:
 - Pre-built firmware hex files (`BP_Synth_ST-Link.hex`, `BP_Synth_DeFuse.hex.dfu`) ready to flash

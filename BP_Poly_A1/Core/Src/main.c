@@ -56,6 +56,7 @@ uint8_t MIDIvel;
 // Voice allocator state
 uint8_t voice_notes[NUM_VOICES]; // MIDI note in each slot; 0 = free
 uint8_t voice_age[NUM_VOICES];   // monotonic age for oldest-note steal
+float   voice_freq[NUM_VOICES];  // base MIDI frequency (Hz) — never modified by DSP path
 uint8_t age_ctr = 0;             // wrapping counter used to assign ages
 uint8_t noteCount = 0;           // number of currently active voices
 uint8_t noteByteFlag = 0;
@@ -210,7 +211,7 @@ void MIDInoteOn(uint8_t note)
 	/* assign the note to this voice slot */
 	voice_notes[slot] = note;
 	voice_age[slot]   = age_ctr++;
-	op[slot].freq     = 440.0f * powf(2.0f, (float)(note - 69) * 0.083333f);
+	voice_freq[slot]  = 440.0f * powf(2.0f, (float)(note - 69) * 0.083333f);
 	op[slot].amp      = 0.8f;
 
 	if (!noteCount) {

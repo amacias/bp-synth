@@ -40,9 +40,12 @@ void ProcessRXdMidiCCs()
 	switch(MIDInote) // CC number
 		{
 
-		case 1 :	Vibrato_amp_set(val);   break;//modwheel
+		case 1 :	Vibrato_amp_set(val);         break;//modwheel
 
-    case 6 :  OSC_Select(val);        break;
+		case 11:	Osc1CoarseTune_set(val);      break;
+		case 12:	Osc2CoarseTune_set(val);      break;
+
+    case 6 :  OSC_Select(val);              break;
 		case 7 :	SynthOut_amp_set(val);  break;
 		case 8 :	legatoOn_set(val);		  break;
 

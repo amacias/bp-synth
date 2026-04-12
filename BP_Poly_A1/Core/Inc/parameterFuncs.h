@@ -46,6 +46,9 @@ void pwm_freq_set(uint8_t val);
 void Filt1LFO_freq_set(uint8_t val);
 void Filt1LFO_amp_set(uint8_t val);
 
+void Osc1CoarseTune_set(uint8_t val);
+void Osc2CoarseTune_set(uint8_t val);
+
 
 
 
