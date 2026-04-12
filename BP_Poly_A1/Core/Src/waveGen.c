@@ -94,6 +94,10 @@ void make_sound(uint16_t *buf , uint16_t length){
 
 	/*--- Apply envelope ---*/
 	env = ADSR_computeSample(&amp_EG);
+	/* EG release completed — silence all oscillators so their slots are free */
+	if (amp_EG.state_ == DONE) {
+		for (int v = 0; v < NUM_VOICES; v++) op[v].amp = 0.0f;
+	}
 
 	/*--- Update the cutoff value ---*/
 	SetFilterValue((filterFreq * (1+ filt_lfo.out)) * (ADSR_computeSample(&filterEG)*22));

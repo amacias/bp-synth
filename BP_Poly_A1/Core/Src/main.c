@@ -208,24 +208,23 @@ void MIDInoteOn(uint8_t note)
 		slot = steal;
 	}
 
+	/* silence any voices still ringing from a previous release */
+	for (int i = 0; i < NUM_VOICES; i++) {
+		if (!voice_notes[i]) op[i].amp = 0.0f;
+	}
+
 	/* assign the note to this voice slot */
 	voice_notes[slot] = note;
 	voice_age[slot]   = age_ctr++;
 	voice_freq[slot]  = 440.0f * powf(2.0f, (float)(note - 69) * 0.083333f);
 	op[slot].amp      = 0.8f;
 
-	if (!noteCount) {
-		/* first note on — start envelopes (pick up softly if still releasing) */
-		if (amp_EG.state_ == RELEASE) {
+	/* retrigger EG on first note, or on every note when legato is off */
+	if (!noteCount || !legatoOn) {
+		if (amp_EG.state_ == RELEASE || amp_EG.state_ == DONE) {
 			amp_EG.value_   = 0.1f;
 			filterEG.value_ = 0.1f;
 		}
-		ADSR_keyOn(&amp_EG);
-		ADSR_keyOn(&filterEG);
-	} else if (!legatoOn) {
-		/* legato off — retrigger envelopes on every new note */
-		amp_EG.value_   = 0.1f;
-		filterEG.value_ = 0.1f;
 		ADSR_keyOn(&amp_EG);
 		ADSR_keyOn(&filterEG);
 	}
@@ -238,7 +237,9 @@ void MIDInoteOff(uint8_t note)
 	for (int i = 0; i < NUM_VOICES; i++) {
 		if (voice_notes[i] == note) {
 			voice_notes[i] = 0;
-			op[i].amp = 0.0f; // silence this voice immediately
+			/* all voices share the same EG — never silence immediately.
+			 * the shared release fades everything; make_sound zeros all
+			 * amps once amp_EG reaches DONE. */
 			if (noteCount > 0) noteCount--;
 			break;
 		}
