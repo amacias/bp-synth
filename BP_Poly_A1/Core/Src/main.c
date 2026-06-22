@@ -57,15 +57,15 @@ uint8_t MIDIvel;
 uint8_t voice_notes[NUM_VOICES]; // MIDI note in each slot; 0 = free
 uint8_t voice_age[NUM_VOICES];   // monotonic age for oldest-note steal
 float   voice_freq[NUM_VOICES];  // base MIDI frequency (Hz) — never modified by DSP path
+uint8_t voice_fade[NUM_VOICES];  // 1 = voice doing a quick declick fade-out (legato note-off)
 uint8_t age_ctr = 0;             // wrapping counter used to assign ages
-uint8_t noteCount = 0;           // number of currently active voices
 uint8_t noteByteFlag = 0;
 
 //---pitchbend variables
 uint8_t bendRange=6;
 float bendFactor=1.0f;
 
-static bool legatoOn=true;
+static bool legatoOn=false;
 
 extern Oscillator_t 	op[];     // voice oscillators defined in oscillators.c
 extern ADSR_t amp_EG;
@@ -190,37 +190,60 @@ void procMIDI(void) {
 }
 
 
+/* number of notes currently held, derived from the authoritative voice array.
+ * Used instead of a parallel counter so the shared-EG gate can never desync
+ * from the real voice state (the old noteCount counter could be left > 0 by a
+ * dropped note-off, a duplicate note-on, or a voice steal — leaving a stuck note). */
+static uint8_t heldNotes(void)
+{
+	uint8_t n = 0;
+	for (int i = 0; i < NUM_VOICES; i++) if (voice_notes[i]) n++;
+	return n;
+}
+
 void MIDInoteOn(uint8_t note)
 {
 	int slot = -1;
-	uint8_t steal = 0; // index of oldest voice to steal
 
-	/* find a free voice slot */
+	/* if this note is already sounding, reuse its slot — dedupes duplicate
+	 * note-ons so a single note-off can fully clear it (prevents stuck notes) */
 	for (int i = 0; i < NUM_VOICES; i++) {
-		if (!voice_notes[i]) { slot = i; break; }
+		if (voice_notes[i] == note) { slot = i; break; }
 	}
 
-	/* no free slot — steal the oldest active voice */
+	/* otherwise find a free voice slot */
 	if (slot < 0) {
+		for (int i = 0; i < NUM_VOICES; i++) {
+			if (!voice_notes[i]) { slot = i; break; }
+		}
+	}
+
+	/* still nothing — steal the oldest active voice */
+	if (slot < 0) {
+		uint8_t steal = 0; // index of oldest voice to steal
 		for (int i = 1; i < NUM_VOICES; i++) {
 			if (voice_age[i] < voice_age[steal]) steal = i;
 		}
 		slot = steal;
 	}
 
-	/* silence any voices still ringing from a previous release */
+	uint8_t wasIdle = (heldNotes() == 0); // capture before assigning this note
+
+	/* silence any voices still ringing from a previous release, but leave any
+	 * voice mid-declick (legato fade) alone so its tail completes smoothly */
 	for (int i = 0; i < NUM_VOICES; i++) {
-		if (!voice_notes[i]) op[i].amp = 0.0f;
+		if (!voice_notes[i] && !voice_fade[i]) op[i].amp = 0.0f;
 	}
 
 	/* assign the note to this voice slot */
 	voice_notes[slot] = note;
 	voice_age[slot]   = age_ctr++;
 	voice_freq[slot]  = 440.0f * powf(2.0f, (float)(note - 69) * 0.083333f);
+	voice_fade[slot]  = 0;       // cancel any in-progress fade on this slot
 	op[slot].amp      = 0.8f;
 
 	/* retrigger EG on first note, or on every note when legato is off */
-	if (!noteCount || !legatoOn) {
+	if (wasIdle || !legatoOn) {
 		if (amp_EG.state_ == RELEASE || amp_EG.state_ == DONE) {
 			amp_EG.value_   = 0.1f;
 			filterEG.value_ = 0.1f;
@@ -228,28 +251,53 @@ void MIDInoteOn(uint8_t note)
 		ADSR_keyOn(&amp_EG);
 		ADSR_keyOn(&filterEG);
 	}
-
-	noteCount++;
 }
 
 void MIDInoteOff(uint8_t note)
 {
+	/* free every slot holding this note (also dedupes duplicate note-ons) and
+	 * start a quick declick fade on it: a single note lifted out of a held
+	 * chord turns off immediately so its slot can be retriggered (Matriarch). */
 	for (int i = 0; i < NUM_VOICES; i++) {
 		if (voice_notes[i] == note) {
 			voice_notes[i] = 0;
-			/* all voices share the same EG — never silence immediately.
-			 * the shared release fades everything; make_sound zeros all
-			 * amps once amp_EG reaches DONE. */
-			if (noteCount > 0) noteCount--;
-			break;
+			voice_fade[i]  = 1;
 		}
 	}
 
-	/* last note released — begin envelope release stage */
-	if (!noteCount) {
+	/* last note released — the whole sound now follows the shared EG release.
+	 * Stop the per-voice quick fades so they don't truncate the release tail;
+	 * the shared EG shapes whatever is still sounding (voices already faded out
+	 * earlier keep amp ~0 and stay silent). */
+	if (heldNotes() == 0) {
+		for (int i = 0; i < NUM_VOICES; i++) voice_fade[i] = 0;
 		ADSR_keyOff(&amp_EG);
 		ADSR_keyOff(&filterEG);
 	}
+}
+
+/* CC123 — All Notes Off: gracefully release everything via the shared EG */
+void AllNotesOff(void)
+{
+	for (int i = 0; i < NUM_VOICES; i++) {
+		voice_notes[i] = 0;
+		voice_fade[i]  = 0;   // let the shared EG release shape the tail
+	}
+	ADSR_keyOff(&amp_EG);
+	ADSR_keyOff(&filterEG);
+}
+
+/* CC120 — All Sound Off: immediate hard silence (panic) */
+void AllSoundOff(void)
+{
+	for (int i = 0; i < NUM_VOICES; i++) {
+		voice_notes[i] = 0;
+		voice_fade[i]  = 0;
+		op[i].amp      = 0.0f;
+	}
+	amp_EG.value_   = 0.0f;
+	amp_EG.state_   = DONE;
+	filterEG.state_ = DONE;
 }
 
 

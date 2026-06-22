@@ -23,6 +23,7 @@ static float env;
 extern Oscillator_t 	op[]; 		// voice oscillators; op[v].amp==0 means inactive
 extern float		voice_freq[];	// base MIDI frequencies; separate from op[].freq
 					// which gets overwritten per-sample by waveComputeVoice
+extern uint8_t		voice_fade[];	// 1 = voice doing a quick declick fade-out
 extern Oscillator_t 	vibr_lfo;	// vibrato LFO
 extern Oscillator_t 	pwm_lfo;
 
@@ -113,6 +114,16 @@ void make_sound(uint16_t *buf , uint16_t length){
 		for (int v = 0; v < NUM_VOICES; v++) {
 			if (f_base[v] > 0.1f) {
 				y += waveComputeVoice(osc_sel, f_base[v] * (1.0f + vibr_lfo.out), v);
+			}
+		}
+		/* per-voice quick declick fade-out for single-note releases (legato mode) */
+		for (int v = 0; v < NUM_VOICES; v++) {
+			if (voice_fade[v]) {
+				op[v].amp -= VOICE_FADE_STEP;
+				if (op[v].amp <= 0.0f) {
+					op[v].amp     = 0.0f;
+					voice_fade[v] = 0;
+				}
 			}
 		}
 		/* normalize by active voice count to prevent output clipping */

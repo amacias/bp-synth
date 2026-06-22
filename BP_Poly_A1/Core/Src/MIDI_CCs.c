@@ -78,6 +78,9 @@ void ProcessRXdMidiCCs()
 
     case 99 : square_dutycycle(val);	break;
 
+    case 120: AllSoundOff();  break;  // All Sound Off — immediate panic silence
+    case 123: AllNotesOff();  break;  // All Notes Off — graceful release
+
 	  default:
 	  break;
 

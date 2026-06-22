@@ -32,6 +32,11 @@
 #define MIDI_MAX				127.f 	// floating max value
 #define NUM_VOICES				4		// number of paraphonic voices
 
+// Per-voice quick declick fade applied to a single note-off in legato mode.
+// Linear ramp from the 0.8 voice amp down to 0 over VOICE_FADE_MS milliseconds.
+#define VOICE_FADE_MS			10.0f
+#define VOICE_FADE_STEP			(0.8f / (VOICE_FADE_MS * 0.001f * SAMPLERATE))
+
 #if defined   (__GNUC__)        /* GNU Compiler */
     #define __ALIGN    __attribute__ ((aligned (4)))
 #endif /* __GNUC__ */

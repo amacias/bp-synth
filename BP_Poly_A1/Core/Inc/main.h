@@ -70,6 +70,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void legatoOn_set(uint8_t val);
+void AllNotesOff(void);   // CC123 — graceful release of every voice
+void AllSoundOff(void);   // CC120 — immediate hard silence (panic)
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
